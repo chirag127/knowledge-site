@@ -1,0 +1,32 @@
+{
+  "name": "knowledge-site",
+  "version": "0.1.0",
+  "description": "Astro source for knowledge.oriz.in — 828 OKF concept files as a warm-paper reader",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "deploy": "astro build && wrangler pages deploy dist --project-name knowledge-oriz-in --branch main --commit-dirty=true"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.0.0",
+    "@astrojs/react": "^4.0.0",
+    "@astrojs/rss": "^4.0.0",
+    "@astrojs/sitemap": "^3.2.0",
+    "@chirag127/site-shell": "github:chirag127/site-shell",
+    "@tailwindcss/vite": "^4.0.0",
+    "astro": "^5.0.0",
+    "flexsearch": "^0.7.43",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "wrangler": "^4.107.0"
+  }
+}

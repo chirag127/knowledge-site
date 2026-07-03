@@ -1,0 +1,44 @@
+name: Publish knowledge.oriz.in
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+  repository_dispatch:
+    types: [knowledge-updated]
+
+concurrency:
+  group: publish-knowledge
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Checkout knowledge from workspace
+        uses: actions/checkout@v5
+        with:
+          repository: chirag127/workspace
+          path: workspace
+          submodules: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile=false
+      - name: Build
+        env:
+          KNOWLEDGE_SRC: ${{ github.workspace }}/workspace/knowledge
+        run: pnpm build
+      - name: Deploy to CF Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          projectName: knowledge-oriz-in
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

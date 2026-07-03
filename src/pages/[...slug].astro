@@ -1,0 +1,81 @@
+---
+import { getCollection, render } from 'astro:content'
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+export async function getStaticPaths() {
+  const concepts = await getCollection('concepts')
+  return concepts.map(c => ({ params: { slug: c.id }, props: { concept: c } }))
+}
+
+const { concept } = Astro.props
+const { Content, headings } = await render(concept)
+const data = concept.data as any
+
+// Load related.json (built by scripts step)
+let relatedMap: Record<string, string[]> = {}
+try {
+  relatedMap = (await import('../data/related.json')).default
+} catch {}
+const related = (data.related || relatedMap[concept.id] || []).slice(0, 6)
+
+// Load full concept list once for related title lookup
+const allConcepts = await getCollection('concepts')
+const titleBySlug: Record<string, string> = {}
+for (const c of allConcepts) titleBySlug[c.id] = (c.data as any).title || c.id
+---
+
+<BaseLayout title={`${data.title || concept.id} — knowledge.oriz.in`} description={data.description}>
+  <div class="layout">
+    <aside class="rail">
+      <details open>
+        <summary>{data.type || 'concept'}</summary>
+        {allConcepts.filter(c => (c.data as any).type === data.type).slice(0, 40).map(c => (
+          <a href={`/${c.id}`} aria-current={c.id === concept.id ? 'page' : undefined}>{(c.data as any).title || c.id.split('/').pop()}</a>
+        ))}
+      </details>
+    </aside>
+
+    <main class="concept-body">
+      <div class="frontmatter-hero">
+        <strong>type:</strong> {data.type}
+        {data.status && (<><br /><strong>status:</strong> {data.status}</>)}
+        {data.timestamp && (<><br /><strong>timestamp:</strong> {String(data.timestamp).slice(0, 10)}</>)}
+        {data.confidence && (<><br /><strong>confidence:</strong> {data.confidence}</>)}
+        {data.durability && (<><br /><strong>durability:</strong> {data.durability}</>)}
+        {data.tags && data.tags.length > 0 && (<><br /><strong>tags:</strong> [{data.tags.join(', ')}]</>)}
+      </div>
+
+      <h1>{data.title || concept.id}</h1>
+      {data.description && <p style="color: var(--muted); font-size: 1.125rem; font-style: italic; border-left: 3px solid var(--rule); padding-left: 1rem;">{data.description}</p>}
+
+      <Content />
+
+      <hr />
+      <p style="color: var(--muted); font-size: 0.875rem;">
+        <a href={`https://github.com/chirag127/workspace/blob/main/knowledge/${concept.id}.md`} style="color: var(--accent);">Edit on GitHub</a> ·
+        <a href="/">Back to index</a>
+      </p>
+    </main>
+
+    <aside class="related-panel">
+      {headings.length > 0 && (
+        <>
+          <h4>On this page</h4>
+          <nav style="margin-bottom: 1.5rem;">
+            {headings.filter(h => h.depth <= 3).map(h => (
+              <a href={`#${h.slug}`} style="display:block; padding: 0.25rem 0; font-size: 0.85rem; color: var(--muted); text-decoration: none; padding-left: {(h.depth - 1) * 0.75}rem;">{h.text}</a>
+            ))}
+          </nav>
+        </>
+      )}
+      {related.length > 0 && (
+        <>
+          <h4>Related</h4>
+          {related.map((r: string) => (
+            <a href={`/${r}`}>{titleBySlug[r] || r.split('/').pop()}</a>
+          ))}
+        </>
+      )}
+    </aside>
+  </div>
+</BaseLayout>
