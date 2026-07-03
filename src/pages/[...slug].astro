@@ -11,12 +11,8 @@ const { concept } = Astro.props
 const { Content, headings } = await render(concept)
 const data = concept.data as any
 
-// Load related.json (built by scripts step)
-let relatedMap: Record<string, string[]> = {}
-try {
-  relatedMap = (await import('../data/related.json')).default
-} catch {}
-const related = (data.related || relatedMap[concept.id] || []).slice(0, 6)
+// Related from frontmatter only (no separate related.json)
+const related = (data.related || []).slice(0, 6)
 
 // Load full concept list once for related title lookup
 const allConcepts = await getCollection('concepts')

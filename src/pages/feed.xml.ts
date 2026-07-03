@@ -1,8 +1,8 @@
----
 import rss from '@astrojs/rss'
 import { getCollection } from 'astro:content'
+import type { APIContext } from 'astro'
 
-export async function GET(context: any) {
+export async function GET(context: APIContext) {
   const concepts = await getCollection('concepts')
   const items = concepts
     .filter(c => (c.data as any).timestamp)
@@ -21,7 +21,7 @@ export async function GET(context: any) {
   return rss({
     title: 'knowledge.oriz.in',
     description: "Chirag's OKF knowledge bundle",
-    site: context.site!.toString(),
+    site: context.site?.toString() || 'https://knowledge.oriz.in',
     items,
   })
 }
