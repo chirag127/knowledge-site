@@ -1,5 +1,9 @@
 # knowledge-site
 
+[![Live](https://img.shields.io/badge/live-knowledge.oriz.in-b8860b)](https://knowledge.oriz.in)
+[![Stars](https://img.shields.io/github/stars/chirag127/knowledge-site?style=flat)](https://github.com/chirag127/knowledge-site/stargazers)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
 Astro source for [knowledge.oriz.in](https://knowledge.oriz.in) — 828 OKF concept files rendered as a warm-paper reader.
 
 ## Stack
