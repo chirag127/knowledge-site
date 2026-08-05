@@ -1,224 +1,571 @@
 @import 'tailwindcss';
-@import '@chirag127/site-shell/styles/global.css';
 
-/* knowledge.oriz.in — warm paper reader palette */
+/*
+ * knowledge.oriz.in — "The Card Catalogue"
+ * Reading-room-after-hours: deep spruce dark, aged-manila index cards,
+ * oxidized-brass call numbers, date-stamp oxblood. Nothing cream, no terracotta.
+ */
 :root {
-  --bg: #f4f1ea;
-  --fg: #1a1817;
-  --accent: #b8860b;
-  --accent-hover: #a07708;
-  --danger: #a83232;
-  --muted: #7a736a;
-  --rule: #e8e2d5;
-  --code-bg: #ece7db;
-  --max-w: 72rem;
+  --ink: #0f1613;          /* deepest — page ground */
+  --spruce: #141d18;       /* reading room wall */
+  --card: #1b2620;         /* index card in the dark drawer */
+  --card-edge: #24322a;    /* card top edge / raised lip */
+  --fg: #ece3cd;           /* typed-on-manila paper white */
+  --fg-dim: #c7bfa9;
+  --brass: #c59f5f;        /* oxidized drawer pull / call number */
+  --brass-deep: #a37f3f;
+  --stamp: #c46a5a;        /* date-due rubber stamp */
+  --sage: #8b9384;         /* pencil label */
+  --rule: #2a352d;         /* drawer joinery hairline */
+  --rod: #3a2f22;          /* brass rod through the punch hole */
 
-  --font-head: 'Charter', 'Iowan Old Style', 'Georgia', serif;
-  --font-body: 'Inter Tight', -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --bg: var(--spruce);
+  --accent: var(--brass);
+  --muted: var(--sage);
+  --code-bg: #131c17;
+  --max-w: 78rem;
+
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-mono: 'Spline Sans Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --tab: 0.11em;           /* uppercase label tracking */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #0a0a0a;
-    --fg: #f0ebe0;
-    --accent: #d4a017;
-    --accent-hover: #e8b330;
-    --muted: #8f8778;
-    --rule: #1c1a17;
-    --code-bg: #14120f;
-  }
+/* Light mode = "the reading lamp is on" — manila cards on a warm oak table */
+[data-theme='light'] {
+  --ink: #efe7d4;
+  --spruce: #f2ead7;
+  --card: #f8f2e5;
+  --card-edge: #ffffff;
+  --fg: #23281f;
+  --fg-dim: #4f5647;
+  --brass: #8a6a2c;
+  --brass-deep: #6f5322;
+  --stamp: #a2402f;
+  --sage: #6f7566;
+  --rule: #d8cdb2;
+  --rod: #b79b6a;
+  --code-bg: #efe6d1;
 }
 
-[data-theme='dark'] {
-  --bg: #0a0a0a;
-  --fg: #f0ebe0;
-  --accent: #d4a017;
-  --accent-hover: #e8b330;
-  --muted: #8f8778;
-  --rule: #1c1a17;
-  --code-bg: #14120f;
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
 
-/* Reader-optimized body prose */
-main.concept-body {
-  max-width: 42rem;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  /* faint drawer-wood grain: horizontal filing lines */
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent, transparent 39px,
+    color-mix(in srgb, var(--rule) 45%, transparent) 39px,
+    color-mix(in srgb, var(--rule) 45%, transparent) 40px
+  );
 }
 
-main.concept-body h1 {
-  border-bottom: 2px solid var(--fg);
-  padding-bottom: 0.3em;
+a { color: var(--brass); text-decoration: none; }
+a:hover { color: var(--fg); }
+
+::selection { background: var(--brass); color: var(--ink); }
+
+/* Visible keyboard focus everywhere */
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
-main.concept-body h1,
-main.concept-body h2,
-main.concept-body h3 {
-  scroll-margin-top: 4rem;
+/* ─────────────────────────  HEADER (the cabinet face)  ───────────────────────── */
+.cabinet-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 1.5rem;
+  background: color-mix(in srgb, var(--ink) 88%, transparent);
+  backdrop-filter: saturate(130%) blur(10px);
+  border-bottom: 1px solid var(--rule);
 }
-
-main.concept-body p {
-  font-size: 1.0625rem;
-  line-height: 1.7;
-  margin-block: 1em;
+.cabinet-header .brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-family: var(--font-display);
 }
-
-/* OKF frontmatter hero */
-.frontmatter-hero {
+.cabinet-header .brand .call {
   font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  padding: 1.25rem 1.5rem;
-  background: var(--code-bg);
-  border-left: 3px solid var(--accent);
-  border-radius: 0 4px 4px 0;
-  margin: 1.5rem 0 2rem;
-  color: var(--muted);
-  overflow-x: auto;
-  line-height: 1.5;
+  font-size: 0.7rem;
+  letter-spacing: var(--tab);
+  color: var(--brass);
+  border: 1px solid var(--brass-deep);
+  padding: 0.15em 0.4em;
+  border-radius: 2px;
+  text-transform: uppercase;
 }
-.frontmatter-hero strong { color: var(--fg); font-weight: 600; }
+.cabinet-header .brand .name {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--fg);
+  font-optical-sizing: auto;
+}
+.header-tools { display: flex; align-items: center; gap: 0.6rem; }
 
-/* Category tree left rail */
-.rail {
+.wordmark-link {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: var(--tab);
+  text-transform: uppercase;
+  color: var(--sage);
+  border-bottom: 1px dotted var(--rule);
+  padding-bottom: 1px;
+}
+.wordmark-link:hover { color: var(--brass); border-color: var(--brass); }
+
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.35em 0.7em;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--card);
+  color: var(--fg-dim);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: border-color 140ms, color 140ms;
+}
+.tool-btn:hover { border-color: var(--brass); color: var(--fg); }
+.tool-btn kbd {
+  padding: 0.05em 0.3em;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  font-size: 0.85em;
+  background: var(--ink);
+}
+
+/* ─────────────────────────  THE INDEX CARD (signature)  ───────────────────────── */
+.card {
+  position: relative;
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--card-edge);
+  border-radius: 3px;
+  padding: 1.05rem 1.25rem 1.05rem 2.6rem;
+  color: inherit;
+  transition: transform 160ms cubic-bezier(.2,.7,.3,1), border-color 160ms, box-shadow 160ms;
+}
+/* the rod punch-hole every catalogue card has, threaded on the brass rod */
+.card::before {
+  content: '';
+  position: absolute;
+  left: 1.05rem;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--ink), #000 70%);
+  box-shadow: 0 0 0 2px var(--rod), inset 0 1px 1px rgba(0,0,0,.6);
+}
+.card:hover {
+  transform: translateY(-3px) rotate(-0.25deg);
+  border-color: var(--brass-deep);
+  box-shadow: 0 10px 24px -14px rgba(0,0,0,.7);
+}
+.card .call-tab {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: var(--tab);
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.card .card-title {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-size: 1.12rem;
+  line-height: 1.25;
+  margin: 0.15em 0 0.2em;
+  color: var(--fg);
+}
+.card .card-desc {
+  color: var(--fg-dim);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
+.card .stamp {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  color: var(--stamp);
+  border: 1px solid color-mix(in srgb, var(--stamp) 55%, transparent);
+  border-radius: 2px;
+  padding: 0.1em 0.4em;
+  transform: rotate(-3deg);
+  white-space: nowrap;
+}
+
+/* ─────────────────────────  DRAWER NAV (left rail)  ───────────────────────── */
+.drawer-nav {
   position: sticky;
   top: 4rem;
   max-height: calc(100vh - 6rem);
   overflow-y: auto;
-  padding: 1rem 0;
-  border-right: 1px solid var(--rule);
-  font-size: 0.9rem;
+  padding-right: 0.5rem;
+  font-size: 0.86rem;
 }
-.rail summary {
-  cursor: pointer;
-  padding: 0.35em 0.5em;
-  color: var(--muted);
-  font-weight: 500;
-}
-.rail summary:hover { color: var(--fg); }
-.rail a {
-  display: block;
-  padding: 0.2em 0.5em 0.2em 1.25em;
-  color: var(--muted);
-  text-decoration: none;
-  border-radius: 3px;
-}
-.rail a:hover, .rail a[aria-current='page'] {
-  color: var(--fg);
-  background: var(--code-bg);
-}
-
-/* Related panel right rail */
-.related-panel {
-  position: sticky;
-  top: 4rem;
-  padding: 1rem;
-  font-size: 0.875rem;
-  border-left: 1px solid var(--rule);
-}
-.related-panel h4 {
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  font-weight: 500;
+.drawer-nav .drawer-label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: var(--tab);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  margin: 0 0 0.75rem;
-}
-.related-panel a {
-  display: block;
-  padding: 0.4rem 0;
-  border-bottom: 1px dashed var(--rule);
-  color: var(--fg);
-  text-decoration: none;
-  line-height: 1.4;
-}
-.related-panel a:hover { color: var(--accent); }
-
-/* Header */
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: color-mix(in srgb, var(--bg) 92%, transparent);
-  backdrop-filter: saturate(120%) blur(8px);
+  color: var(--sage);
+  padding: 0.9rem 0 0.35rem;
   border-bottom: 1px solid var(--rule);
-  padding: 0.75rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  margin-bottom: 0.3rem;
 }
-
-.search-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.4em 0.75em;
-  border: 1px solid var(--rule);
-  border-radius: 5px;
-  background: transparent;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 0.875rem;
+.drawer-nav details { margin-bottom: 0.2rem; }
+.drawer-nav summary {
   cursor: pointer;
-}
-.search-btn:hover { border-color: var(--accent); color: var(--fg); }
-.search-btn kbd {
-  padding: 0.1em 0.35em;
-  border: 1px solid var(--rule);
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4em 0.5em;
   border-radius: 3px;
-  font-size: 0.75em;
-  background: var(--code-bg);
+  color: var(--fg-dim);
+  font-weight: 500;
+}
+.drawer-nav summary::-webkit-details-marker { display: none; }
+.drawer-nav summary:hover { color: var(--fg); background: var(--card); }
+.drawer-nav summary .n {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--brass);
+}
+.drawer-nav a {
+  display: block;
+  padding: 0.22em 0.5em 0.22em 1rem;
+  color: var(--muted);
+  border-left: 1px solid var(--rule);
+  margin-left: 0.5em;
+  line-height: 1.35;
+}
+.drawer-nav a:hover, .drawer-nav a[aria-current='page'] {
+  color: var(--fg);
+  border-left-color: var(--brass);
 }
 
-/* Layout grid */
-.layout {
+/* ─────────────────────────  CATALOGUE HEADER BLOCK (concept meta)  ───────────────────────── */
+.catalogue-slip {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.7;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--brass);
+  border-radius: 0 3px 3px 0;
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0 1.75rem;
+  color: var(--fg-dim);
+  overflow-x: auto;
+}
+.catalogue-slip .k { color: var(--sage); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem; }
+.catalogue-slip .v { color: var(--fg); }
+.catalogue-slip .v.call { color: var(--brass); }
+
+/* ─────────────────────────  READER  ───────────────────────── */
+main.reader {
+  max-width: 44rem;
+  padding: 1.5rem 1.5rem 5rem;
+}
+main.reader h1 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-size: clamp(1.9rem, 3.5vw, 2.6rem);
+  line-height: 1.1;
+  margin: 0.2em 0 0.3em;
+}
+main.reader .lede {
+  color: var(--fg-dim);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  border-left: 2px solid var(--brass-deep);
+  padding-left: 1rem;
+  margin: 0 0 1.75rem;
+}
+main.reader h2, main.reader h3 { font-family: var(--font-display); font-weight: 500; scroll-margin-top: 5rem; }
+main.reader h2 { font-size: 1.5rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.25em; margin-top: 2.2rem; }
+main.reader h3 { font-size: 1.2rem; margin-top: 1.6rem; }
+main.reader p { font-size: 1.03rem; line-height: 1.72; margin-block: 1em; }
+main.reader ul, main.reader ol { line-height: 1.7; }
+main.reader code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--code-bg);
+  padding: 0.12em 0.35em;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
+}
+main.reader pre {
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+main.reader pre code { background: none; border: none; padding: 0; }
+main.reader blockquote {
+  border-left: 3px solid var(--brass-deep);
+  padding-left: 1rem;
+  color: var(--fg-dim);
+  font-style: italic;
+  margin-left: 0;
+}
+main.reader table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+main.reader th, main.reader td { border: 1px solid var(--rule); padding: 0.5em 0.7em; text-align: left; }
+main.reader th { background: var(--code-bg); font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--sage); }
+main.reader hr { border: none; border-top: 1px solid var(--rule); margin: 2rem 0; }
+
+/* three-column reading layout */
+.stacks {
   display: grid;
-  grid-template-columns: minmax(200px, 240px) minmax(0, 1fr) minmax(220px, 260px);
-  gap: 2rem;
+  grid-template-columns: minmax(200px, 250px) minmax(0, 1fr) minmax(200px, 240px);
+  gap: 2.25rem;
   max-width: var(--max-w);
   margin: 0 auto;
   padding: 1rem 1.5rem;
 }
-@media (max-width: 1023px) {
-  .layout { grid-template-columns: 1fr; }
-  .rail, .related-panel { display: none; }
+.tray {
+  position: sticky;
+  top: 4rem;
+  padding: 1rem 0;
+  font-size: 0.84rem;
+  align-self: start;
+}
+.tray h4 {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: var(--tab);
+  text-transform: uppercase;
+  color: var(--sage);
+  margin: 0 0 0.6rem;
+}
+.tray nav a { display: block; padding: 0.22rem 0; color: var(--muted); line-height: 1.35; }
+.tray nav a:hover { color: var(--brass); }
+.tray .related a { border-bottom: 1px dashed var(--rule); }
+
+@media (max-width: 1024px) {
+  .stacks { grid-template-columns: 1fr; }
+  .drawer-nav, .tray { display: none; }
 }
 
-/* Category index cards */
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-  margin: 2rem 0;
-}
-.category-card {
-  padding: 1.25rem;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  transition: border-color 150ms, transform 150ms;
-  text-decoration: none;
-  color: inherit;
-  display: block;
-}
-.category-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-1px);
-}
-.category-card h3 {
-  font-family: var(--font-head);
-  font-size: 1.25rem;
-  margin: 0 0 0.25em;
-}
-.category-card .count {
+/* ─────────────────────────  FOOTER (filing block)  ───────────────────────── */
+.filing-footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 4rem;
+  padding: 2rem 1.5rem;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--muted);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 0.76rem;
+  color: var(--sage);
+  max-width: var(--max-w);
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  justify-content: space-between;
+  align-items: center;
 }
-.category-card p {
-  margin: 0.5em 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
+.filing-footer a { color: var(--fg-dim); }
+.filing-footer a:hover { color: var(--brass); }
+
+/* ─────────────────────────  SEARCH DIALOG  ───────────────────────── */
+dialog#search-dialog {
+  border: 1px solid var(--brass-deep);
+  border-radius: 4px;
+  padding: 0;
+  width: 92%;
+  max-width: 620px;
+  background: var(--card);
+  color: var(--fg);
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,.8);
+}
+dialog#search-dialog::backdrop { background: rgba(4,8,6,.6); backdrop-filter: blur(2px); }
+#search-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--fg);
+  font-family: var(--font-mono);
+}
+#search-results a {
+  display: block;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--rule);
+  color: inherit;
+}
+#search-results a:hover { background: var(--code-bg); }
+#search-results .r-title { font-family: var(--font-display); font-weight: 500; }
+#search-results .r-desc { font-size: 0.8rem; color: var(--muted); margin-top: 0.1em; }
+#search-results .r-call { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: var(--tab); text-transform: uppercase; color: var(--brass); }
+
+/* ─────────────────────────  HOME — the cabinet & drawers  ───────────────────────── */
+.home { max-width: var(--max-w); margin: 0 auto; padding: 0 1.5rem; }
+
+/* HERO = the drawer face: a real catalogue drawer front with brass pull + typed label */
+.drawer-hero {
+  position: relative;
+  margin: 2.5rem 0 3rem;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  background:
+    linear-gradient(180deg, var(--card-edge), var(--card) 18%);
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1.5rem, 5vw, 3.5rem);
+  overflow: hidden;
+}
+.drawer-hero::after {
+  /* the brass drawer pull, centered on the bottom lip */
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0.9rem;
+  width: clamp(70px, 12vw, 120px);
+  height: 12px;
+  transform: translateX(-50%);
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--brass), var(--brass-deep));
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--ink) 60%, transparent), inset 0 1px 1px rgba(255,255,255,.25);
+}
+.drawer-hero .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: var(--tab);
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.drawer-hero h1 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-size: clamp(2.4rem, 6vw, 4.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  margin: 0.35em 0 0.35em;
+  color: var(--fg);
+}
+.drawer-hero h1 em { font-style: italic; color: var(--brass); }
+.drawer-hero .thesis {
+  max-width: 44rem;
+  color: var(--fg-dim);
+  font-size: 1.08rem;
+  line-height: 1.6;
+}
+.drawer-hero .rod-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--sage);
+  letter-spacing: 0.04em;
+}
+.drawer-hero .rod-count b { color: var(--brass); font-size: 1.05rem; }
+
+/* section heading = a filed guide-tab */
+.guide-tab {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: var(--tab);
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--brass);
+  padding: 0.3em 0.85em;
+  border-radius: 3px 3px 0 0;
+  margin: 2.5rem 0 0;
+}
+.drawer-face {
+  border: 1px solid var(--rule);
+  border-radius: 0 4px 4px 4px;
+  padding: 1.25rem;
+}
+
+/* drawer grid = the wall of drawers, each a type */
+.drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 0.9rem;
+}
+.drawer {
+  position: relative;
+  display: block;
+  background: linear-gradient(180deg, var(--card-edge), var(--card) 30%);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 1.1rem 1.1rem 2rem;
+  color: inherit;
+  transition: transform 160ms cubic-bezier(.2,.7,.3,1), border-color 160ms;
+}
+.drawer::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0.7rem;
+  width: 34px;
+  height: 7px;
+  transform: translateX(-50%);
+  border-radius: 4px;
+  background: linear-gradient(180deg, var(--brass), var(--brass-deep));
+}
+.drawer:hover { transform: translateY(-2px); border-color: var(--brass-deep); }
+.drawer .call-tab { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: var(--tab); text-transform: uppercase; color: var(--brass); }
+.drawer .d-type { font-family: var(--font-display); font-size: 1.25rem; font-weight: 500; margin: 0.2em 0 0.15em; text-transform: capitalize; color: var(--fg); }
+.drawer .d-desc { color: var(--muted); font-size: 0.83rem; line-height: 1.45; margin: 0; }
+
+/* recent-cards stack with orchestrated riffle-in on load */
+.card-stack { display: grid; gap: 0.7rem; margin-top: 1rem; }
+.card-stack .card { opacity: 0; }
+.card-riffle .card {
+  animation: riffle 520ms cubic-bezier(.2,.75,.3,1) both;
+}
+@keyframes riffle {
+  from { opacity: 0; transform: translateY(14px) rotate(-1deg); }
+  to   { opacity: 1; transform: translateY(0) rotate(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-stack .card { opacity: 1 !important; animation: none !important; }
+}
+.card-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
 }

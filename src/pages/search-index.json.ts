@@ -1,5 +1,6 @@
 import { getCollection } from 'astro:content'
 import type { APIRoute } from 'astro'
+import { callNumber } from '../lib/callNumber'
 
 export const GET: APIRoute = async () => {
   const concepts = await getCollection('concepts')
@@ -11,6 +12,7 @@ export const GET: APIRoute = async () => {
       description: d.description || '',
       tags: (d.tags || []).join(' '),
       type: d.type || 'other',
+      call: callNumber(d.type || 'other', c.id),
     }
   })
   return new Response(JSON.stringify(docs), {

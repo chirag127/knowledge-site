@@ -1,16 +1,17 @@
 import { defineCollection, z } from 'astro:content'
 import { glob } from 'astro/loaders'
 import { pathToFileURL } from 'node:url'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 /**
- * OKF v0.2 frontmatter schema (defined inline using astro:content Zod
- * to avoid dual-Zod-version issues with @chirag127/site-shell).
+ * OKF v0.2 frontmatter schema (inline astro:content Zod).
  */
 const stringOrArray = z.preprocess(
   v => {
     if (v == null) return undefined
     if (typeof v === 'string') return [v]
-    if (Array.isArray(v)) return v
+    if (Array.isArray(v)) return v.map(x => String(x))
     return undefined
   },
   z.array(z.string()).optional()
@@ -34,7 +35,12 @@ const okfSchema = z.object({
   related: stringOrArray,
 }).passthrough()
 
-const KNOWLEDGE_SRC = process.env.KNOWLEDGE_SRC || 'C:/d/oriz/knowledge'
+const CANDIDATES = [
+  process.env.KNOWLEDGE_SRC,
+  'C:/d/oriz/knowledge',
+  resolve(process.cwd(), '../../../knowledge'),
+].filter(Boolean) as string[]
+const KNOWLEDGE_SRC = CANDIDATES.find(p => existsSync(p)) || CANDIDATES[0]
 const baseUrl = pathToFileURL(KNOWLEDGE_SRC + '/').toString()
 
 const concepts = defineCollection({

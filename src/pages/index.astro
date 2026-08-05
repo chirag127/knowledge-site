@@ -1,78 +1,95 @@
 ---
 import { getCollection } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro'
+import { callNumber } from '../lib/callNumber'
 
 const concepts = await getCollection('concepts')
 
-// Group by top-level type
-const byType: Record<string, { count: number; latest: any[] }> = {}
+const byType: Record<string, number> = {}
 for (const c of concepts) {
   const t = (c.data as any).type || 'other'
-  byType[t] ??= { count: 0, latest: [] }
-  byType[t].count++
-  byType[t].latest.push(c)
-}
-for (const t of Object.keys(byType)) {
-  byType[t].latest.sort((a, b) => String((b.data as any).timestamp || '').localeCompare(String((a.data as any).timestamp || ''))).slice(0, 3)
+  byType[t] = (byType[t] || 0) + 1
 }
 
 const CATEGORY_META: Record<string, string> = {
-  decision: 'Locked architectural and operational choices with rationale.',
-  rule: 'Non-negotiable constraints and disciplines.',
-  runbook: 'Step-by-step procedures — read before running.',
-  service: 'Third-party services with free-tier numbers and adoption status.',
-  glossary: 'Family vocabulary and shorthand.',
-  reference: 'External docs, papers, and archives.',
-  index: 'Section indexes.',
+  decision: 'Locked choices, dated, with the reasoning that fixed them.',
+  rule: 'Non-negotiable constraints. Read before you break one.',
+  runbook: 'Step-by-step procedures. Read before you run.',
+  service: 'Third-party services with free-tier numbers + adoption status.',
+  glossary: 'House vocabulary and shorthand.',
+  reference: 'External docs, papers, archives.',
+  index: 'Section indexes and maps.',
+  security: 'Secrets, auth, and safety disciplines.',
+  other: 'Everything not yet filed under a heading.',
 }
+
+const drawers = Object.entries(byType).sort((a, b) => b[1] - a[1])
+
+const recent = [...concepts]
+  .sort((a, b) => String((b.data as any).timestamp || '').localeCompare(String((a.data as any).timestamp || '')))
+  .slice(0, 10)
 ---
 
-<BaseLayout title="knowledge.oriz.in">
-  <main style="max-width: var(--max-w); margin: 0 auto; padding: 2rem 1.5rem;">
-    <div class="frontmatter-hero">
-      <strong>type:</strong> knowledge-bundle<br />
-      <strong>format:</strong> okf-v0.2<br />
-      <strong>concepts:</strong> {concepts.length}<br />
-      <strong>author:</strong> chirag127<br />
-      <strong>license:</strong> MIT<br />
-      <strong>source:</strong> <a href="https://github.com/chirag127/workspace" style="color: var(--accent);">github.com/chirag127/workspace</a>
-    </div>
-
-    <h1 style="font-family: var(--font-head); font-size: clamp(2.5rem, 5vw, 3.75rem); margin-top: 1rem;">The library.</h1>
-    <p style="font-size: 1.125rem; color: var(--muted); max-width: 40rem;">
-      {concepts.length} concept files backing a personal engineering practice.
-      Decisions, rules, runbooks, services. Written to be re-read.
-      Structured in <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog" style="color: var(--accent);">Open Knowledge Format</a>.
-    </p>
-
-    <div class="category-grid">
-      {Object.entries(byType).sort((a, b) => b[1].count - a[1].count).map(([t, info]) => (
-        <a href={`/types/${t}/`} class="category-card">
-          <span class="count">{info.count} files</span>
-          <h3>{t}</h3>
-          <p>{CATEGORY_META[t] || 'Concept files.'}</p>
-        </a>
-      ))}
-    </div>
-
-    <section style="margin-top: 3rem;">
-      <h2 style="font-family: var(--font-head); border-bottom: 1px solid var(--rule); padding-bottom: 0.3em;">Recently updated</h2>
-      <ul style="list-style: none; padding: 0; margin-top: 1rem;">
-        {concepts
-          .sort((a, b) => String((b.data as any).timestamp || '').localeCompare(String((a.data as any).timestamp || '')))
-          .slice(0, 12)
-          .map(c => (
-            <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--rule);">
-              <a href={`/${c.id}`} style="text-decoration: none; color: inherit; display: flex; justify-content: space-between; gap: 1rem; align-items: baseline;">
-                <span>
-                  <strong style="font-family: var(--font-head); font-weight: 600;">{(c.data as any).title || c.id}</strong>
-                  <span style="color: var(--muted); font-size: 0.9rem; margin-left: 0.5rem;">— {(c.data as any).description || ''}</span>
-                </span>
-                <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); white-space: nowrap;">{String((c.data as any).timestamp || '').slice(0, 10)}</span>
-              </a>
-            </li>
-          ))}
-      </ul>
+<BaseLayout title="Card Catalogue — knowledge.oriz.in">
+  <div class="home">
+    <section class="drawer-hero">
+      <span class="eyebrow">Catalogue · Open Knowledge Format · card {concepts.length}</span>
+      <h1>Every decision I've made, <em>filed</em> and cross-referenced.</h1>
+      <p class="thesis">
+        A working engineer's second brain kept the way a library keeps its holdings —
+        one card per concept, each with a call number, a heading, and the rule of thumb
+        that put it there. Pull a drawer, read the card, follow the cross-reference.
+      </p>
+      <span class="rod-count">
+        <b>{concepts.length}</b> cards on the rod · {drawers.length} drawers
+      </span>
     </section>
-  </main>
+
+    <span class="guide-tab">The drawers</span>
+    <div class="drawer-face">
+      <div class="drawer-grid">
+        {drawers.map(([t, n]) => (
+          <a href={`/types/${t}/`} class="drawer">
+            <span class="call-tab">{callNumber(t, t).split(' ')[0]} · {n}</span>
+            <div class="d-type">{t}</div>
+            <p class="d-desc">{CATEGORY_META[t] || 'Concept cards.'}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <span class="guide-tab">Recently filed</span>
+    <div class="drawer-face">
+      <div class="card-stack" id="recent-stack">
+        {recent.map((c) => {
+          const d = c.data as any
+          const call = callNumber(d.type || 'other', c.id)
+          return (
+            <a href={`/${c.id}`} class="card">
+              <div class="card-line">
+                <span class="call-tab">{call}</span>
+                {d.timestamp && <span class="stamp">{String(d.timestamp).slice(0, 10)}</span>}
+              </div>
+              <div class="card-title">{d.title || c.id.split('/').pop()}</div>
+              {d.description && <p class="card-desc">{d.description}</p>}
+            </a>
+          )
+        })}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Orchestrated riffle: cards settle into the stack, staggered, once, on load.
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const stack = document.getElementById('recent-stack')
+    if (stack && !reduce) {
+      stack.classList.add('card-riffle')
+      ;[...stack.children].forEach((el, i) => {
+        ;(el as HTMLElement).style.animationDelay = `${i * 55}ms`
+      })
+    } else if (stack) {
+      ;[...stack.children].forEach((el) => ((el as HTMLElement).style.opacity = '1'))
+    }
+  </script>
 </BaseLayout>

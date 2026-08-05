@@ -1,20 +1,26 @@
 ---
-import Wordmark from '@chirag127/site-shell/components/Wordmark.astro'
-import Footer from '@chirag127/site-shell/components/Footer.astro'
-import { bunnyFontsCss } from '@chirag127/site-shell/bunny-fonts'
 import '../styles/global.css'
+import AccountControl from '../components/AccountControl.tsx'
 
 interface Props {
   title: string
   description?: string
 }
 
-const { title, description = "Chirag's OKF knowledge bundle — decisions, rules, runbooks, services" } = Astro.props
-const fontsUrl = bunnyFontsCss({
-  charter: [400, 500, 700],
-  'inter-tight': [400, 500, 600],
-  'jetbrains-mono': [400, 500],
-})
+const {
+  title,
+  description = "Chirag's OKF knowledge base — a card catalogue of decisions, rules, runbooks, services.",
+} = Astro.props
+
+// Fraunces (display), Hanken Grotesk (body), Spline Sans Mono (data)
+const fontsUrl =
+  'https://fonts.bunny.net/css?family=' +
+  [
+    'fraunces:400,400i,500,500i',
+    'hanken-grotesk:400,500,600',
+    'spline-sans-mono:400,500',
+  ].join('|') +
+  '&display=swap'
 ---
 
 <!doctype html>
@@ -23,61 +29,77 @@ const fontsUrl = bunnyFontsCss({
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#141d18" />
     <title>{title}</title>
     <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
-    <link rel="preconnect" href="https://fonts.bunny.net" />
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
     <link rel="stylesheet" href={fontsUrl} />
     <script is:inline>
-      // Set theme early to avoid flash
       const saved = localStorage.getItem('theme')
       if (saved) document.documentElement.setAttribute('data-theme', saved)
     </script>
   </head>
   <body>
-    <header class="site-header">
-      <Wordmark />
-      <div style="display:flex; gap: 0.75rem; align-items: center;">
-        <button id="search-btn" class="search-btn" onclick="document.getElementById('search-dialog')?.showModal()">
-          Search <kbd>⌘K</kbd>
+    <header class="cabinet-header">
+      <a href="/" class="brand" aria-label="knowledge.oriz.in — home">
+        <span class="call">KB&nbsp;001</span>
+        <span class="name">Card&nbsp;Catalogue</span>
+      </a>
+      <div class="header-tools">
+        <a href="https://oriz.in" class="wordmark-link" aria-label="oriz.in">oriz.in</a>
+        <button
+          id="search-btn"
+          class="tool-btn"
+          type="button"
+          onclick="document.getElementById('search-dialog')?.showModal()"
+        >
+          Look up <kbd>⌘K</kbd>
         </button>
-        <button id="theme-toggle" class="search-btn" aria-label="Toggle theme" style="padding: 0.4em 0.55em;">
+        <button id="theme-toggle" class="tool-btn" aria-label="Toggle reading lamp" style="padding: 0.35em 0.5em;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
+        <AccountControl client:load />
       </div>
     </header>
 
     <slot />
 
-    <Footer />
+    <footer class="filing-footer">
+      <span>Open Knowledge Format · {new Date().getFullYear()} · MIT</span>
+      <span style="display:flex; gap:1.25rem;">
+        <a href="https://github.com/chirag127/oriz-knowledge-site">source</a>
+        <a href="/feed.xml">feed</a>
+        <a href="/llms.txt">llms.txt</a>
+        <a href="https://oriz.in">oriz.in</a>
+      </span>
+    </footer>
 
-    <dialog id="search-dialog" style="border:1px solid var(--rule); border-radius:8px; padding:0; width: 90%; max-width: 600px; background: var(--bg); color: var(--fg);">
-      <form method="dialog" style="padding: 1.5rem;">
-        <input id="search-input" type="search" placeholder="Search 828 concepts…" autofocus style="width:100%; padding: 0.75rem 1rem; font-size:1rem; background:var(--code-bg); border: 1px solid var(--rule); border-radius: 4px; color: var(--fg); font-family: var(--font-body);" />
-        <div id="search-results" style="margin-top: 1rem; max-height: 400px; overflow-y: auto;"></div>
+    <dialog id="search-dialog" aria-label="Look up a concept">
+      <form method="dialog" style="padding: 1.25rem;">
+        <input id="search-input" type="search" placeholder="Look up a concept…" autofocus autocomplete="off" />
+        <div id="search-results" style="margin-top: 1rem; max-height: 60vh; overflow-y: auto;"></div>
       </form>
     </dialog>
 
     <script>
-      // Theme toggle
+      const root = document.documentElement
       document.getElementById('theme-toggle')?.addEventListener('click', () => {
-        const cur = document.documentElement.getAttribute('data-theme')
-        const next = cur === 'dark' ? 'light' : 'dark'
-        document.documentElement.setAttribute('data-theme', next)
+        const cur = root.getAttribute('data-theme')
+        const next = cur === 'light' ? 'dark' : 'light'
+        root.setAttribute('data-theme', next)
         localStorage.setItem('theme', next)
       })
 
-      // ⌘K to open search
       window.addEventListener('keydown', (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
           e.preventDefault()
-          document.getElementById('search-dialog')?.showModal()
+          ;(document.getElementById('search-dialog') as HTMLDialogElement)?.showModal()
         }
-        if (e.key === 'Escape') document.getElementById('search-dialog')?.close()
+        if (e.key === 'Escape') (document.getElementById('search-dialog') as HTMLDialogElement)?.close()
       })
 
-      // Lazy FlexSearch index
-      let searchIndex = null
-      let searchDocs = []
+      let searchIndex: any = null
+      let searchDocs: any[] = []
       async function ensureIndex() {
         if (searchIndex) return
         const res = await fetch('/search-index.json')
@@ -89,27 +111,25 @@ const fontsUrl = bunnyFontsCss({
         })
         for (const doc of searchDocs) searchIndex.add(doc)
       }
-      const inp = document.getElementById('search-input')
+      const inp = document.getElementById('search-input') as HTMLInputElement | null
       const out = document.getElementById('search-results')
       inp?.addEventListener('input', async (e) => {
-        const q = e.target.value.trim()
+        const q = (e.target as HTMLInputElement).value.trim()
+        if (!out) return
         if (!q) { out.innerHTML = ''; return }
         await ensureIndex()
         const hits = searchIndex.search(q, { limit: 10, enrich: true })
-        const seen = new Set()
-        const results = []
+        const seen = new Set<string>()
+        const results: any[] = []
         for (const field of hits) for (const r of field.result) {
           if (seen.has(r.id)) continue
           seen.add(r.id)
-          const doc = searchDocs.find(d => d.slug === r.id)
+          const doc = searchDocs.find((d) => d.slug === r.id)
           if (doc) results.push(doc)
         }
-        out.innerHTML = results.slice(0, 10).map(r =>
-          `<a href="/${r.slug}" style="display:block; padding:0.6rem 0.75rem; border-bottom:1px solid var(--rule); text-decoration:none; color:inherit;">
-            <div style="font-weight:600;">${r.title}</div>
-            <div style="font-size:0.8125rem; color:var(--muted); margin-top:0.15em;">${r.description || ''}</div>
-          </a>`
-        ).join('') || '<div style="padding:0.5rem; color:var(--muted);">No results.</div>'
+        out.innerHTML = results.slice(0, 10).map((r) =>
+          `<a href="/${r.slug}"><span class="r-call">${r.call || r.type}</span><div class="r-title">${r.title}</div><div class="r-desc">${r.description || ''}</div></a>`
+        ).join('') || '<div style="padding:0.75rem; color:var(--muted); font-family:var(--font-mono); font-size:0.8rem;">No card matches. Try another heading.</div>'
       })
     </script>
   </body>

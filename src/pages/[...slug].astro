@@ -1,76 +1,93 @@
 ---
 import { getCollection, render } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro'
+import ShelfButton from '../components/ShelfButton.tsx'
+import { callNumber } from '../lib/callNumber'
 
 export async function getStaticPaths() {
   const concepts = await getCollection('concepts')
-  return concepts.map(c => ({ params: { slug: c.id }, props: { concept: c } }))
+  return concepts.map((c) => ({ params: { slug: c.id }, props: { concept: c } }))
 }
 
 const { concept } = Astro.props
 const { Content, headings } = await render(concept)
 const data = concept.data as any
+const call = callNumber(data.type || 'other', concept.id)
 
-// Related from frontmatter only (no separate related.json)
-const related = (data.related || []).slice(0, 6)
-
-// Load full concept list once for related title lookup
 const allConcepts = await getCollection('concepts')
 const titleBySlug: Record<string, string> = {}
 for (const c of allConcepts) titleBySlug[c.id] = (c.data as any).title || c.id
+
+const related = (data.related || []).slice(0, 6)
+const siblings = allConcepts
+  .filter((c) => (c.data as any).type === data.type)
+  .slice(0, 40)
 ---
 
-<BaseLayout title={`${data.title || concept.id} — knowledge.oriz.in`} description={data.description}>
-  <div class="layout">
-    <aside class="rail">
+<BaseLayout title={`${data.title || concept.id} — Card Catalogue`} description={data.description}>
+  <div class="stacks">
+    <aside class="drawer-nav">
+      <div class="drawer-label">Drawer · {data.type || 'concept'}</div>
       <details open>
-        <summary>{data.type || 'concept'}</summary>
-        {allConcepts.filter(c => (c.data as any).type === data.type).slice(0, 40).map(c => (
-          <a href={`/${c.id}`} aria-current={c.id === concept.id ? 'page' : undefined}>{(c.data as any).title || c.id.split('/').pop()}</a>
+        <summary>
+          <span style="text-transform: capitalize;">{data.type || 'concept'}</span>
+          <span class="n">{siblings.length}</span>
+        </summary>
+        {siblings.map((c) => (
+          <a href={`/${c.id}`} aria-current={c.id === concept.id ? 'page' : undefined}>
+            {(c.data as any).title || c.id.split('/').pop()}
+          </a>
         ))}
       </details>
     </aside>
 
-    <main class="concept-body">
-      <div class="frontmatter-hero">
-        <strong>type:</strong> {data.type}
-        {data.status && (<><br /><strong>status:</strong> {data.status}</>)}
-        {data.timestamp && (<><br /><strong>timestamp:</strong> {String(data.timestamp).slice(0, 10)}</>)}
-        {data.confidence && (<><br /><strong>confidence:</strong> {data.confidence}</>)}
-        {data.durability && (<><br /><strong>durability:</strong> {data.durability}</>)}
-        {data.tags && data.tags.length > 0 && (<><br /><strong>tags:</strong> [{data.tags.join(', ')}]</>)}
+    <main class="reader">
+      <div class="catalogue-slip">
+        <span class="k">call</span> <span class="v call">{call}</span><br />
+        <span class="k">type</span> <span class="v">{data.type}</span>
+        {data.status && (<><br /><span class="k">status</span> <span class="v">{data.status}</span></>)}
+        {data.timestamp && (<><br /><span class="k">filed</span> <span class="v">{String(data.timestamp).slice(0, 10)}</span></>)}
+        {data.confidence && (<><br /><span class="k">confidence</span> <span class="v">{data.confidence}</span></>)}
+        {data.durability && (<><br /><span class="k">durability</span> <span class="v">{data.durability}</span></>)}
+        {data.tags && data.tags.length > 0 && (<><br /><span class="k">subjects</span> <span class="v">{data.tags.join(' · ')}</span></>)}
       </div>
 
       <h1>{data.title || concept.id}</h1>
-      {data.description && <p style="color: var(--muted); font-size: 1.125rem; font-style: italic; border-left: 3px solid var(--rule); padding-left: 1rem;">{data.description}</p>}
+      {data.description && <p class="lede">{data.description}</p>}
+
+      <div style="display:flex; gap:0.6rem; margin: 0 0 1.5rem;">
+        <ShelfButton client:load slug={concept.id} callNumber={call} />
+      </div>
 
       <Content />
 
       <hr />
-      <p style="color: var(--muted); font-size: 0.875rem;">
-        <a href={`https://github.com/chirag127/workspace/blob/main/knowledge/${concept.id}.md`} style="color: var(--accent);">Edit on GitHub</a> ·
-        <a href="/">Back to index</a>
+      <p style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted);">
+        <a href={`https://github.com/chirag127/workspace/blob/main/knowledge/${concept.id}.md`}>edit this card</a> ·
+        <a href="/">back to catalogue</a>
       </p>
     </main>
 
-    <aside class="related-panel">
+    <aside class="tray">
       {headings.length > 0 && (
-        <>
-          <h4>On this page</h4>
-          <nav style="margin-bottom: 1.5rem;">
-            {headings.filter(h => h.depth <= 3).map(h => (
-              <a href={`#${h.slug}`} style="display:block; padding: 0.25rem 0; font-size: 0.85rem; color: var(--muted); text-decoration: none; padding-left: {(h.depth - 1) * 0.75}rem;">{h.text}</a>
+        <div style="margin-bottom: 1.75rem;">
+          <h4>On this card</h4>
+          <nav>
+            {headings.filter((h) => h.depth <= 3).map((h) => (
+              <a href={`#${h.slug}`} style={`padding-left:${(h.depth - 1) * 0.7}rem;`}>{h.text}</a>
             ))}
           </nav>
-        </>
+        </div>
       )}
       {related.length > 0 && (
-        <>
-          <h4>Related</h4>
-          {related.map((r: string) => (
-            <a href={`/${r}`}>{titleBySlug[r] || r.split('/').pop()}</a>
-          ))}
-        </>
+        <div class="related">
+          <h4>Cross-references</h4>
+          <nav>
+            {related.map((r: string) => (
+              <a href={`/${r}`}>{titleBySlug[r] || r.split('/').pop()}</a>
+            ))}
+          </nav>
+        </div>
       )}
     </aside>
   </div>

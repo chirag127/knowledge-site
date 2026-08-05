@@ -1,41 +1,48 @@
 ---
 import { getCollection } from 'astro:content'
 import BaseLayout from '../../layouts/BaseLayout.astro'
+import { callNumber } from '../../lib/callNumber'
 
 export async function getStaticPaths() {
   const concepts = await getCollection('concepts')
   const types = new Set<string>()
   for (const c of concepts) types.add((c.data as any).type || 'other')
-  return [...types].map(type => ({ params: { type }, props: { type } }))
+  return [...types].map((type) => ({ params: { type }, props: { type } }))
 }
 
 const { type } = Astro.props
 const allConcepts = await getCollection('concepts')
 const concepts = allConcepts
-  .filter(c => ((c.data as any).type || 'other') === type)
+  .filter((c) => ((c.data as any).type || 'other') === type)
   .sort((a, b) => String((b.data as any).timestamp || '').localeCompare(String((a.data as any).timestamp || '')))
+const classLetters = callNumber(type, type).split(' ')[0]
 ---
 
-<BaseLayout title={`${type} — knowledge.oriz.in`}>
-  <main style="max-width: var(--max-w); margin: 0 auto; padding: 2rem 1.5rem;">
-    <p style="color: var(--muted); margin-bottom: 0.5rem;"><a href="/" style="color: inherit;">← knowledge.oriz.in</a></p>
-    <h1 style="font-family: var(--font-head);">{type} <span style="color: var(--muted); font-weight: 400;">({concepts.length})</span></h1>
+<BaseLayout title={`${type} — Card Catalogue`}>
+  <div class="home">
+    <section class="drawer-hero">
+      <span class="eyebrow">Drawer {classLetters} · {concepts.length} cards</span>
+      <h1 style="text-transform: capitalize;">{type}</h1>
+      <p class="thesis"><a href="/">← back to the catalogue</a></p>
+    </section>
 
-    <ul style="list-style: none; padding: 0; margin-top: 1.5rem;">
-      {concepts.map(c => {
-        const d = c.data as any
-        return (
-          <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--rule);">
-            <a href={`/${c.id}`} style="text-decoration: none; color: inherit;">
-              <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;">
-                <strong style="font-family: var(--font-head); font-weight: 600; font-size: 1.0625rem;">{d.title || c.id.split('/').pop()}</strong>
-                <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); white-space: nowrap;">{String(d.timestamp || '').slice(0, 10)}</span>
+    <div class="drawer-face">
+      <div class="card-stack">
+        {concepts.map((c) => {
+          const d = c.data as any
+          const call = callNumber(d.type || 'other', c.id)
+          return (
+            <a href={`/${c.id}`} class="card">
+              <div class="card-line">
+                <span class="call-tab">{call}</span>
+                {d.timestamp && <span class="stamp">{String(d.timestamp).slice(0, 10)}</span>}
               </div>
-              {d.description && <div style="color: var(--muted); font-size: 0.9375rem; margin-top: 0.25em;">{d.description}</div>}
+              <div class="card-title">{d.title || c.id.split('/').pop()}</div>
+              {d.description && <p class="card-desc">{d.description}</p>}
             </a>
-          </li>
-        )
-      })}
-    </ul>
-  </main>
+          )
+        })}
+      </div>
+    </div>
+  </div>
 </BaseLayout>
