@@ -1,7 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro'
-import ShelfButton from '../components/ShelfButton.tsx'
 import { callNumber } from '../lib/callNumber'
 
 export async function getStaticPaths() {
@@ -24,7 +23,7 @@ const siblings = allConcepts
   .slice(0, 40)
 ---
 
-<BaseLayout title={`${data.title || concept.id} — Card Catalogue`} description={data.description}>
+<BaseLayout title={`${data.title || concept.id} — Card Catalogue`} description={data.description} shelf={{ slug: concept.id, callNumber: call }}>
   <div class="stacks">
     <aside class="drawer-nav">
       <div class="drawer-label">Drawer · {data.type || 'concept'}</div>
@@ -55,9 +54,7 @@ const siblings = allConcepts
       <h1>{data.title || concept.id}</h1>
       {data.description && <p class="lede">{data.description}</p>}
 
-      <div style="display:flex; gap:0.6rem; margin: 0 0 1.5rem;">
-        <ShelfButton client:load slug={concept.id} callNumber={call} />
-      </div>
+      <div id="shelf-slot" style="display:flex; gap:0.6rem; margin: 0 0 1.5rem;"></div>
 
       <Content />
 

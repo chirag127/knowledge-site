@@ -1,15 +1,17 @@
 ---
 import '../styles/global.css'
-import AccountControl from '../components/AccountControl.tsx'
+import ClerkIsland from '../components/ClerkIsland.tsx'
 
 interface Props {
   title: string
   description?: string
+  shelf?: { slug: string; callNumber: string }
 }
 
 const {
   title,
   description = "Chirag's OKF knowledge base — a card catalogue of decisions, rules, runbooks, services.",
+  shelf,
 } = Astro.props
 
 // Fraunces (display), Hanken Grotesk (body), Spline Sans Mono (data)
@@ -58,7 +60,7 @@ const fontsUrl =
         <button id="theme-toggle" class="tool-btn" aria-label="Toggle reading lamp" style="padding: 0.35em 0.5em;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
-        <AccountControl client:load />
+        <ClerkIsland client:load shelf={shelf} />
       </div>
     </header>
 
