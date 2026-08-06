@@ -51,6 +51,8 @@
 
 * { box-sizing: border-box; }
 
+html, body { max-width: 100%; overflow-x: hidden; }
+
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -290,12 +292,14 @@ a:hover { color: var(--fg); }
   overflow-x: auto;
 }
 .catalogue-slip .k { color: var(--sage); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem; }
-.catalogue-slip .v { color: var(--fg); }
+.catalogue-slip .v { color: var(--fg); overflow-wrap: anywhere; word-break: break-word; }
 .catalogue-slip .v.call { color: var(--brass); }
 
 /* ─────────────────────────  READER  ───────────────────────── */
 main.reader {
   max-width: 44rem;
+  width: 100%;
+  min-width: 0;
   padding: 1.5rem 1.5rem 5rem;
 }
 main.reader h1 {
@@ -305,6 +309,8 @@ main.reader h1 {
   font-size: clamp(1.9rem, 3.5vw, 2.6rem);
   line-height: 1.1;
   margin: 0.2em 0 0.3em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 main.reader .lede {
   color: var(--fg-dim);
@@ -379,8 +385,10 @@ main.reader hr { border: none; border-top: 1px solid var(--rule); margin: 2rem 0
 .tray .related a { border-bottom: 1px dashed var(--rule); }
 
 @media (max-width: 1024px) {
-  .stacks { grid-template-columns: 1fr; }
+  .stacks { grid-template-columns: minmax(0, 1fr); }
   .drawer-nav, .tray { display: none; }
+  main.reader { max-width: 100%; padding-inline: 1rem; }
+  main.reader pre, main.reader table, .catalogue-slip { max-width: 100%; }
 }
 
 /* ─────────────────────────  FOOTER (filing block)  ───────────────────────── */
@@ -552,16 +560,14 @@ dialog#search-dialog::backdrop { background: rgba(4,8,6,.6); backdrop-filter: bl
 
 /* recent-cards stack with orchestrated riffle-in on load */
 .card-stack { display: grid; gap: 0.7rem; margin-top: 1rem; }
-.card-stack .card { opacity: 0; }
-.card-riffle .card {
-  animation: riffle 520ms cubic-bezier(.2,.75,.3,1) both;
-}
+/* cards visible by default; hide only when JS opts into the riffle reveal */
+.card-riffle .card { opacity: 0; animation: riffle 520ms cubic-bezier(.2,.75,.3,1) both; }
 @keyframes riffle {
   from { opacity: 0; transform: translateY(14px) rotate(-1deg); }
   to   { opacity: 1; transform: translateY(0) rotate(0); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .card-stack .card { opacity: 1 !important; animation: none !important; }
+  .card-riffle .card { opacity: 1 !important; animation: none !important; }
 }
 .card-line {
   display: flex;
