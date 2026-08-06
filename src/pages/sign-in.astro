@@ -1,0 +1,32 @@
+---
+/*
+ * /sign-in — dedicated Clerk sign-in for oriz.in SSO.
+ *
+ * Exactly ONE ClerkProvider here: BaseLayout's header ClerkIsland is suppressed
+ * via showAuth={false}, so only SignInPanel mounts a provider. Public content
+ * stays ungated — this route just hosts the shared *.oriz.in sign-in surface.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import SignInPanel from '../components/SignInPanel.tsx'
+---
+<BaseLayout title="Sign in — knowledge.oriz.in" description="Sign in to oriz. One account works across every oriz site." showAuth={false}>
+  <main class="signin-page">
+    <header class="signin-head">
+      <span class="call">KB&nbsp;SSO</span>
+      <h1>Sign in</h1>
+      <p>One account works across every oriz site — sign in once, roam the family. Public content stays free and needs no account.</p>
+    </header>
+    <section class="signin-wrap">
+      <SignInPanel client:only="react" />
+    </section>
+  </main>
+
+  <style>
+    .signin-page { max-width: 40rem; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+    .signin-head .call { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.1em; color: var(--brass); }
+    .signin-head h1 { font-family: var(--font-display, 'Fraunces', Georgia, serif); margin: 0.35rem 0 0.5rem; color: var(--fg); }
+    .signin-head p { color: var(--fg-dim); max-width: 52ch; line-height: 1.6; }
+    .signin-wrap { display: flex; justify-content: center; padding-top: 2rem; }
+    .signin-wrap :global(.signin-missing) { color: var(--muted); font-family: var(--font-mono); font-size: 0.85rem; }
+  </style>
+</BaseLayout>
