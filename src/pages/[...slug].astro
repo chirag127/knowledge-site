@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro'
+import NoteAI from '../components/NoteAI.tsx'
 import { callNumber } from '../lib/callNumber'
 
 export async function getStaticPaths() {
@@ -55,6 +56,10 @@ const siblings = allConcepts
       {data.description && <p class="lede">{data.description}</p>}
 
       <div id="shelf-slot" style="display:flex; gap:0.6rem; margin: 0 0 1.5rem;"></div>
+
+      {concept.body && concept.body.trim().length > 0 && (
+        <NoteAI client:visible title={data.title || concept.id} body={concept.body} />
+      )}
 
       <Content />
 
